@@ -80,7 +80,7 @@ RUN chmod u+x Setup_tModLoaderServer.sh &&\
     
 
 WORKDIR ../terraria-server
-COPY --from=build ../terraria-server ./
+COPY --from=build /terraria-server ./
 
 RUN apk update &&\
     apk add --no-cache procps tmux
