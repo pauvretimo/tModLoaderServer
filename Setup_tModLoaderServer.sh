@@ -14,5 +14,3 @@ fi
 
 echo "\n\n"
 echo "The server has been installed in ../tmod directory (ie one folder up and across)."
-
-read -p "You can run this script again to update mods/server files. Press ENTER to close." bob
