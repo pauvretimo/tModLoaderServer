@@ -32,7 +32,7 @@ WORKDIR /tmod-util
 
 COPY Setup_tModLoaderServer.sh install.txt ./
 RUN chmod u+x Setup_tModLoaderServer.sh &&\
-    ./ Setup_tModLoaderServer.sh
+    ./Setup_tModLoaderServer.sh
 
 FROM bitnami/dotnet:3.1-debian-10
 
