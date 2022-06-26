@@ -28,7 +28,7 @@ WORKDIR /tmod-util
 
 COPY Setup_tModLoaderServer.sh install.txt ./
 RUN chmod u+x Setup_tModLoaderServer.sh &&\
-    ./ Setup_tModLoaderServer.sh
+    ./Setup_tModLoaderServer.sh
     
 WORKDIR ../tmod
 RUN chmod u+x start-tModLoader*
