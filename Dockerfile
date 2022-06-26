@@ -32,6 +32,7 @@ RUN chmod u+x Setup_tModLoaderServer.sh &&\
     
 WORKDIR ../tmod
 RUN find . -name start-tModLoader* -exec chmod u+x {} \;
+RUN echo $(ls)
 
 
 FROM frolvlad/alpine-glibc 
