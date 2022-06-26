@@ -37,7 +37,7 @@ RUN find . -name start-tModLoader* -exec chmod u+x {} \;
 FROM frolvlad/alpine-glibc 
 
 WORKDIR ./tModLoader
-COPY --from=tmod /tmod/tModLoader ./
+COPY --from=tmod /tmod ./
 
 WORKDIR ../terraria-server
 COPY --from=build /terraria-server ./
