@@ -3,10 +3,9 @@ FROM frolvlad/alpine-glibc as build
 ARG TMOD_VERSION=2022.04.62.6
 ARG TERRARIA_VERSION=1436
 
-RUN apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
-    apk add --no-cache --virtual=.build-dependencies ca-certificates && \
-    cert-sync /etc/ssl/certs/ca-certificates.crt && \
-    apk del .build-dependencies
+RUN apk update &&\
+    apk add --no-cache --virtual build curl unzip &&\
+    apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing mono
     
 RUN apk add bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib &&\
     apk add libgdiplus --repository https://dl-3.alpinelinux.org/alpine/edge/testing/
