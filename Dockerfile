@@ -43,7 +43,7 @@ RUN echo "ls here" &&\
 FROM frolvlad/alpine-glibc 
 
 WORKDIR ./tModLoader
-COPY --from=tmod /tmod ./
+COPY --from=tmod ./ ./
 
 WORKDIR ../terraria-server
 COPY --from=build /terraria-server ./
