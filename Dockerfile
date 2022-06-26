@@ -39,7 +39,7 @@ FROM bitnami/dotnet:3.1-debian-10
 WORKDIR /terraria-server
 COPY --from=build /terraria-server ./
 COPY --from=steamod /root/.steam/tmod/steamapps/workshop/content/1281930 ./mods
-COPY enable.json ./mods
+COPY enabled.json ./mods
 
 RUN apt update &&\
     apt -y install procps cron tmux
