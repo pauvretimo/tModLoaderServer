@@ -22,7 +22,7 @@ RUN curl -SLO "https://terraria.org/api/download/pc-dedicated-server/terraria-se
     rm TerrariaServer.exe
 
 
-FROM steamcmd/steamcmd:alpine-3 as tmod
+FROM steamcmd/steamcmd:alpine-3 as steamtmod
 
 WORKDIR /tmod-util
 
@@ -33,17 +33,11 @@ RUN chmod u+x Setup_tModLoaderServer.sh &&\
 WORKDIR ../tmod
 RUN find . -name start-tModLoader* -exec chmod u+x {} \;
 
-WORKDIR /
-RUN echo "ls here" &&\
-    echo $(ls) &&\
-    echo "list all directories" &&\
-    echo $(ls -d */)
-
 
 FROM frolvlad/alpine-glibc 
 
 WORKDIR ./tModLoader
-COPY --from=tmod ./ ./
+COPY --from=steamtmod / ./
 
 WORKDIR ../terraria-server
 COPY --from=build /terraria-server ./
