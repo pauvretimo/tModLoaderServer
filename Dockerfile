@@ -33,7 +33,7 @@ RUN chmod u+x Setup_tModLoaderServer.sh &&\
 WORKDIR ../tmod
 RUN find . -name start-tModLoader* -exec chmod u+x {} \;
 
-WORKDIR ../
+WORKDIR /
 RUN echo "ls here" &&\
     echo $(ls) &&\
     echo "list all directories" &&\
