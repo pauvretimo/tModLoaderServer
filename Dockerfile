@@ -14,7 +14,7 @@ WORKDIR /terraria-server
 
 RUN cp /usr/lib/libMonoPosixHelper.so .
 
-WORKDIR /terraria
+WORKDIR ./terraria
 
 RUN curl -SLO "https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TERRARIA_VERSION}.zip" &&\
     unzip terraria-server-*.zip &&\
@@ -80,7 +80,7 @@ RUN chmod u+x Setup_tModLoaderServer.sh &&\
     
 
 WORKDIR ../terraria-server
-COPY --from=build /terraria-server ./
+COPY --from=build ../terraria-server ./
 
 RUN apk update &&\
     apk add --no-cache procps tmux
