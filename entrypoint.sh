@@ -26,7 +26,8 @@ if [ "$1" = "setup" ]; then
   
 else
   trap shutdown SIGTERM SIGINT
-
+  $server
+  '
   saveMsg='Autosave - $(date +"%Y-%m-%d %T")'
   idleMsg='Idle Check - $(date +"%Y-%m-%d %T")'
   
@@ -42,4 +43,5 @@ else
   cat $pipe &
 
   wait ${!}
+  '
 fi
