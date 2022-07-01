@@ -33,7 +33,7 @@ else
   fi
   mkfifo $pipe
   tmux new-session -d "$server -server -config /terraria-server/config.txt | tee $pipe $players"
-  sleep 60 && cron -d 8 &
+  sleep 60 && service cron start &
   cat $pipe &
 
   wait ${!}
