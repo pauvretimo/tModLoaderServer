@@ -1,16 +1,12 @@
-FROM frolvlad/alpine-glibc as build
+FROM frolvlad/alpine-glibc:alpine-3.10 as build
 
-ARG TMOD_VERSION=2022.04.62.6
+ARG TMOD_VERSION=2022.06.96.3
 
-RUN apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
-    apk add --no-cache --virtual=.build-dependencies ca-certificates && \
-    cert-sync /etc/ssl/certs/ca-certificates.crt && \
-    apk del .build-dependencies
-    
-RUN apk add bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib &&\
-    apk add libgdiplus --repository https://dl-3.alpinelinux.org/alpine/edge/testing/
+RUN apk update &&\
+    apk add --no-cache --virtual build curl unzip &&\
+    apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing mono
 
-WORKDIR /terraria-server
+WORKDIR /terraria-server/terraria
 
 RUN cp /usr/lib/libMonoPosixHelper.so .
 
@@ -19,6 +15,12 @@ RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMO
     chmod u+x start-tModLoaderServer.sh &&\
     chmod u+x start-tModLoader.sh
 
+WORKDIR ../tModLoader
+
+RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMOD_VERSION}/tModLoader.zip" &&\
+    unzip tModLoader.zip &&\
+    chmod u+x start-tModLoaderServer.sh &&\
+    chmod u+x start-tModLoader.sh
 
 FROM steamcmd/steamcmd:alpine-3 as tmod
 
