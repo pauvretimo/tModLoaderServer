@@ -78,8 +78,8 @@ RUN chmod u+x Setup_tModLoaderServer.sh &&\
 WORKDIR ../terraria-server
 COPY --from=build /terraria-server ./
 
-RUN apk update &&\
-    apk add --no-cache procps tmux
+RUN apt update &&\
+    apt -y install procps cron tmux
 RUN ln -s ${HOME}/.local/share/Terraria/ /terraria
 COPY inject.sh /usr/local/bin/inject
 COPY handle-idle.sh /usr/local/bin/handle-idle
