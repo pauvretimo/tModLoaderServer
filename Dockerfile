@@ -1,3 +1,27 @@
+######## STEAMCMD BUILDER ########
+
+# Set the base image
+FROM steamcmd/steamcmd:ubuntu-18 as builder
+
+# Set environment variables
+ENV USER root
+ENV HOME /root/installer
+
+# Set working directory
+WORKDIR $HOME
+
+# Install prerequisites
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl tar
+
+# Donload and unpack installer
+RUN curl http://media.steampowered.com/installer/steamcmd_linux.tar.gz \
+    --output steamcmd.tar.gz --silent
+RUN tar -xvzf steamcmd.tar.gz && rm steamcmd.tar.gz
+
+
+######## DOWNLOAD BUILDER ########
+
 FROM ubuntu as build
 
 ARG TMOD_VERSION=2022.06.96.3
@@ -28,49 +52,39 @@ RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMO
     chmod u+x start-tModLoaderServer.sh &&\
     chmod u+x start-tModLoader.sh
 
-FROM steamcmd/steamcmd:alpine-3 as tmod
 
-ENV LANG=C.UTF-8
+######## FINAL IMAGE ########
 
-# Here we install GNU libc (aka glibc) and set C.UTF-8 locale as default.
+### .NET Windows official image
+FROM mcr.microsoft.com/dotnet/aspnet:6.0.6-alpine3.16-amd64
 
-RUN ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" && \
-    ALPINE_GLIBC_PACKAGE_VERSION="2.35-r0" && \
-    ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
-    ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
-    ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
-    apk add --no-cache --virtual=.build-dependencies wget ca-certificates && \
-    echo \
-        "-----BEGIN PUBLIC KEY-----\
-        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApZ2u1KJKUu/fW4A25y9m\
-        y70AGEa/J3Wi5ibNVGNn1gT1r0VfgeWd0pUybS4UmcHdiNzxJPgoWQhV2SSW1JYu\
-        tOqKZF5QSN6X937PTUpNBjUvLtTQ1ve1fp39uf/lEXPpFpOPL88LKnDBgbh7wkCp\
-        m2KzLVGChf83MS0ShL6G9EQIAUxLm99VpgRjwqTQ/KfzGtpke1wqws4au0Ab4qPY\
-        KXvMLSPLUp7cfulWvhmZSegr5AdhNw5KNizPqCJT8ZrGvgHypXyiFvvAH5YRtSsc\
-        Zvo9GI2e2MaZyo9/lvb+LbLEJZKEQckqRj4P26gmASrZEPStwc+yqy1ShHLA0j6m\
-        1QIDAQAB\
-        -----END PUBLIC KEY-----" | sed 's/   */\n/g' > "/etc/apk/keys/sgerrand.rsa.pub" && \
-    wget \
-        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
-    apk add --no-cache \
-        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
-    \
-    rm "/etc/apk/keys/sgerrand.rsa.pub" && \
-    (/usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 "$LANG" || true) && \
-    echo "export LANG=$LANG" > /etc/profile.d/locale.sh && \
-    \
-    apk del glibc-i18n && \
-    \
-    rm "/root/.wget-hsts" && \
-    apk del .build-dependencies && \
-    rm \
-        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME"
+##SteamCMD install
+
+# Set environment variables
+ENV USER root
+ENV HOME /root
+
+# Set working directory
+WORKDIR $HOME
+
+# Install prerequisites
+RUN apk update \
+ && apk add --no-cache bash \
+ && rm -rf /var/cache/apk/*
+
+# Copy steamcmd files from builder
+COPY --from=builder /root/installer/steamcmd.sh /usr/lib/games/steam/
+COPY --from=builder /root/installer/linux32/steamcmd /usr/lib/games/steam/
+COPY --from=builder /usr/games/steamcmd /usr/bin/steamcmd
+
+# Copy required files from builder
+COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=builder /lib/i386-linux-gnu /lib/
+COPY --from=builder /root/installer/linux32/libstdc++.so.6 /lib/
+
+# Update SteamCMD and verify latest version
+RUN steamcmd +quit
+
 
 
 WORKDIR /tmod-util
