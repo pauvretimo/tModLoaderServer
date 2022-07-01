@@ -1,6 +1,7 @@
 FROM ubuntu as build
 
 ARG TMOD_VERSION=2022.06.96.3
+ARG TERRARIA_VERSION=1436
 
 RUN apt update
 RUN apt install -y dirmngr gnupg apt-transport-https ca-certificates software-properties-common
