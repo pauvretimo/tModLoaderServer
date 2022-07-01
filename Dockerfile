@@ -1,7 +1,8 @@
 FROM ubuntu as build
 
-ARG TMOD_VERSION=2022.06.96.1
-ARG TERRARIA_VERSION=1436
+
+ARG TMOD_VERSION=2022.04.62.6
+
 
 RUN apt update
 RUN apt install -y dirmngr gnupg apt-transport-https ca-certificates software-properties-common
@@ -14,12 +15,10 @@ WORKDIR /terraria-server
 
 # RUN cp /usr/lib/libMonoPosixHelper.so .
 
-RUN curl -SLO "https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TERRARIA_VERSION}.zip" &&\
-    unzip terraria-server-*.zip &&\
-    rm terraria-server-*.zip &&\
-    cp --verbose -a "${TERRARIA_VERSION}/Linux/." . &&\
-    rm -rf "${TERRARIA_VERSION}" &&\
-    rm TerrariaServer.exe
+RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMOD_VERSION}/tModLoader.zip" &&\
+    unzip tModLoader.zip &&\
+    chmod u+x start-tModLoaderServer.sh &&\
+    chmod u+x start-tModLoader.sh
 
 
 WORKDIR ../tModLoader
@@ -31,21 +30,58 @@ RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMO
 
 FROM steamcmd/steamcmd:ubuntu as steamod
 
+ENV LANG=C.UTF-8
+
+# Here we install GNU libc (aka glibc) and set C.UTF-8 locale as default.
+
+RUN ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" && \
+    ALPINE_GLIBC_PACKAGE_VERSION="2.35-r0" && \
+    ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
+    ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
+    ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
+    apk add --no-cache --virtual=.build-dependencies wget ca-certificates && \
+    echo \
+        "-----BEGIN PUBLIC KEY-----\
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApZ2u1KJKUu/fW4A25y9m\
+        y70AGEa/J3Wi5ibNVGNn1gT1r0VfgeWd0pUybS4UmcHdiNzxJPgoWQhV2SSW1JYu\
+        tOqKZF5QSN6X937PTUpNBjUvLtTQ1ve1fp39uf/lEXPpFpOPL88LKnDBgbh7wkCp\
+        m2KzLVGChf83MS0ShL6G9EQIAUxLm99VpgRjwqTQ/KfzGtpke1wqws4au0Ab4qPY\
+        KXvMLSPLUp7cfulWvhmZSegr5AdhNw5KNizPqCJT8ZrGvgHypXyiFvvAH5YRtSsc\
+        Zvo9GI2e2MaZyo9/lvb+LbLEJZKEQckqRj4P26gmASrZEPStwc+yqy1ShHLA0j6m\
+        1QIDAQAB\
+        -----END PUBLIC KEY-----" | sed 's/   */\n/g' > "/etc/apk/keys/sgerrand.rsa.pub" && \
+    wget \
+        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
+    apk add --no-cache \
+        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
+    \
+    rm "/etc/apk/keys/sgerrand.rsa.pub" && \
+    (/usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 "$LANG" || true) && \
+    echo "export LANG=$LANG" > /etc/profile.d/locale.sh && \
+    \
+    apk del glibc-i18n && \
+    \
+    rm "/root/.wget-hsts" && \
+    apk del .build-dependencies && \
+    rm \
+        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
+        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME"
+
+
 WORKDIR /tmod-util
 
 COPY Setup_tModLoaderServer.sh install.txt ./
 RUN chmod u+x Setup_tModLoaderServer.sh &&\
-    ./Setup_tModLoaderServer.sh
+    ./ Setup_tModLoaderServer.sh
 
-FROM bitnami/dotnet:3.1-debian-10
 
-WORKDIR /tModLoader
-COPY --from=build /tModLoader ./
-
-WORKDIR /terraria-server
-COPY --from=build /terraria-server ./
-COPY --from=steamod /root/.steam/tmod/steamapps/workshop/content/1281930 ./mods
-COPY enabled.json ./mods
+#WORKDIR ../terraria-server
+#COPY --from=build /terraria-server ./
 
 RUN apt update &&\
     apt -y install procps cron tmux
@@ -62,4 +98,4 @@ ENV TMOD_IDLE_CHECK_OFFSET=0
 COPY config.txt entrypoint.sh ./
 RUN chmod +x entrypoint.sh /usr/local/bin/inject /usr/local/bin/handle-idle
 
-ENTRYPOINT [ "/terraria-server/entrypoint.sh" ]
+ENTRYPOINT [ "/bin/bash" ]
