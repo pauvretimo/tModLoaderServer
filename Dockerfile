@@ -2,9 +2,13 @@ FROM frolvlad/alpine-glibc:alpine-3.10 as build
 
 ARG TMOD_VERSION=2022.06.96.3
 
-RUN apk update &&\
-    apk add --no-cache --virtual build curl unzip &&\
-    apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing mono
+RUN apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
+    apk add --no-cache --virtual=.build-dependencies ca-certificates && \
+    cert-sync /etc/ssl/certs/ca-certificates.crt && \
+    apk del .build-dependencies
+
+RUN apk add bash curl unzip icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib &&\
+    apk add libgdiplus --repository https://dl-3.alpinelinux.org/alpine/edge/testing/
 
 WORKDIR /terraria-server/terraria
 
