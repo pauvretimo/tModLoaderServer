@@ -1,3 +1,25 @@
+######## STEAM BUILDER ########
+
+# Set the base image
+FROM steamcmd/steamcmd:ubuntu-18 as builder
+
+# Set environment variables
+ENV USER root
+ENV HOME /root/installer
+
+# Set working directory
+WORKDIR $HOME
+
+# Install prerequisites
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl tar
+
+# Donload and unpack installer
+RUN curl http://media.steampowered.com/installer/steamcmd_linux.tar.gz \
+    --output steamcmd.tar.gz --silent
+RUN tar -xvzf steamcmd.tar.gz && rm steamcmd.tar.gz
+
+
 ######## DOWNLOAD BUILDER ########
 
 FROM ubuntu as build
@@ -43,25 +65,20 @@ ENV HOME /root
 # Set working directory
 WORKDIR $HOME
 
-# Insert Steam prompt answers
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN echo steam steam/question select "I AGREE" | debconf-set-selections \
- && echo steam steam/license note '' | debconf-set-selections
+# Install prerequisites
+RUN apt update \
+ && apt -y install bash \
+ && rm -rf /var/cache/apk/*
 
-# Update the repository and install SteamCMD
-ARG DEBIAN_FRONTEND=noninteractive
-RUN dpkg --add-architecture i386 \
- && apt-get update -y \
- && apt-get install -y --no-install-recommends ca-certificates locales steamcmd \
- && rm -rf /var/lib/apt/lists/*
+# Copy steamcmd files from builder
+COPY --from=builder /root/installer/steamcmd.sh /usr/lib/games/steam/
+COPY --from=builder /root/installer/linux32/steamcmd /usr/lib/games/steam/
+COPY --from=builder /usr/games/steamcmd /usr/bin/steamcmd
 
-# Add unicode support
-RUN locale-gen en_US.UTF-8
-ENV LANG 'en_US.UTF-8'
-ENV LANGUAGE 'en_US:en'
-
-# Create symlink for executable
-RUN ln -s /usr/games/steamcmd /usr/bin/steamcmd
+# Copy required files from builder
+COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=builder /lib/i386-linux-gnu /lib/
+COPY --from=builder /root/installer/linux32/libstdc++.so.6 /lib/
 
 # Update SteamCMD and verify latest version
 RUN steamcmd +quit
