@@ -39,6 +39,9 @@ RUN chmod u+x Setup_tModLoaderServer.sh &&\
 
 FROM bitnami/dotnet:3.1-debian-10
 
+WORKDIR /tModLoader
+COPY --from=build /tModLoader ./
+
 WORKDIR /terraria-server
 COPY --from=build /terraria-server ./
 COPY --from=steamod /root/.steam/tmod/steamapps/workshop/content/1281930 ./mods
