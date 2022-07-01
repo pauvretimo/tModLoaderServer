@@ -98,4 +98,4 @@ ENV TMOD_IDLE_CHECK_OFFSET=0
 COPY config.txt entrypoint.sh ./
 RUN chmod +x entrypoint.sh /usr/local/bin/inject /usr/local/bin/handle-idle
 
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "/terraria-server/entrypoint.sh" ]
