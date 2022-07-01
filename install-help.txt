@@ -21,11 +21,14 @@ BetterBlending
 RecipeBrowser
 2619954303
 
-VeinMiner
-2570921824
+OreExcavator
+2565639705
 
 lostfractal
 2567912927
 
 StormAddition
 2747380524
+
+BossChecklist
+2669644269

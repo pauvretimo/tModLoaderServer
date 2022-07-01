@@ -1,12 +1,13 @@
 [
-  "CalamityMod",
-  "CalamityModMusic",
-  "AlchemistNPCLite",
+  "BetterBlending",
+  "BossCursor",
+  "RecipeBrowser",
   "MagicStorage",
   "FractalTwo",
-  "BossCursor",
-  "BetterBlending",
-  "MultiplayerSpectator",
+  "OreExcavator",
   "StormDiversMod",
-  "RecipeBrowser"
+  "AlchemistNPCLite",
+  "CalamityMod",
+  "CalamityModMusic",
+  "BossChecklist"
 ]
