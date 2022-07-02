@@ -24,7 +24,7 @@ RUN tar -xvzf steamcmd.tar.gz && rm steamcmd.tar.gz
 
 FROM ubuntu as build
 
-ARG TMOD_VERSION=2022.06.96.3
+ARG TMOD_VERSION=2022.04.62.6
 ARG TERRARIA_VERSION=1436
 
 RUN apt update
