@@ -1,30 +1,21 @@
-######## STEAM BUILDER ########
+######## MODS FROM STEAM ########
 
 # Set the base image
-FROM steamcmd/steamcmd:ubuntu-18 as builder
+FROM steamcmd/steamcmd:ubuntu-18 as mods
 
-# Set environment variables
-ENV USER root
-ENV HOME /root/installer
+WORKDIR /tmod-util
 
-# Set working directory
-WORKDIR $HOME
+COPY Setup_tModLoaderServer.sh install.txt ./
+RUN chmod u+x Setup_tModLoaderServer.sh &&\
+    ./Setup_tModLoaderServer.sh
 
-# Install prerequisites
-RUN apt-get update \
- && apt-get install -y --no-install-recommends curl tar
+/Terraria/ModLoader/Mods
 
-# Donload and unpack installer
-RUN curl http://media.steampowered.com/installer/steamcmd_linux.tar.gz \
-    --output steamcmd.tar.gz --silent
-RUN tar -xvzf steamcmd.tar.gz && rm steamcmd.tar.gz
-
-
-######## DOWNLOAD BUILDER ########
+######## DOWNLOAD TMODLOADER ########
 
 FROM ubuntu as build
 
-ARG TMOD_VERSION=2022.04.62.6
+ARG TMOD_VERSION=2022.06.96.4
 ARG TERRARIA_VERSION=1436
 
 RUN apt update
@@ -34,7 +25,7 @@ RUN apt-add-repository -y 'deb https://download.mono-project.com/repo/ubuntu sta
 RUN apt install -y mono-complete 
 RUN apt install -y curl unzip
 
-WORKDIR /terraria-server
+WORKDIR /terraria-server/terraria
 
 RUN cp /usr/lib/libMonoPosixHelper.so .
 
@@ -44,6 +35,8 @@ RUN curl -SLO "https://terraria.org/api/download/pc-dedicated-server/terraria-se
     cp --verbose -a "${TERRARIA_VERSION}/Linux/." . &&\
     rm -rf "${TERRARIA_VERSION}" &&\
     rm TerrariaServer.exe
+
+WORKDIR ../tModLoader
 
 RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMOD_VERSION}/tModLoader.zip" &&\
     unzip tModLoader.zip &&\
@@ -56,41 +49,7 @@ RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMO
 ### .NET Windows official image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0.6-bullseye-slim-amd64
 
-# Set environment variables
-ENV USER root
-ENV HOME /root
-
-# Set working directory
-WORKDIR $HOME
-
-# Install prerequisites
-RUN apt update \
- && apt -y install bash \
- && rm -rf /var/cache/apk/*
-
-# Copy steamcmd files from builder
-COPY --from=builder /root/installer/steamcmd.sh /usr/lib/games/steam/
-COPY --from=builder /root/installer/linux32/steamcmd /usr/lib/games/steam/
-COPY --from=builder /usr/games/steamcmd /usr/bin/steamcmd
-
-# Copy required files from builder
-COPY --from=builder /etc/ssl/certs /etc/ssl/certs
-COPY --from=builder /lib/i386-linux-gnu /lib/
-COPY --from=builder /root/installer/linux32/libstdc++.so.6 /lib/
-
-# Update SteamCMD and verify latest version
-RUN steamcmd +quit
-
-
-
-WORKDIR /tmod-util
-
-COPY Setup_tModLoaderServer.sh install.txt ./
-RUN chmod u+x Setup_tModLoaderServer.sh &&\
-    ./Setup_tModLoaderServer.sh
-
-
-WORKDIR ../terraria-server
+WORKDIR /terraria-server
 COPY --from=build /terraria-server ./
 
 RUN apt update &&\
