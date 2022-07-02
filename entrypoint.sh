@@ -16,7 +16,7 @@ function shutdown() {
   rm $pipe
 }
 
-server="/terraria-server/tModLoader/start-tModLoader.sh"
+server="/terraria-server/Build/start-tModLoader.sh"
 if [ "$1" = "setup" ]; then
   /bin/bash
 else
