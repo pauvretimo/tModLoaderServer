@@ -45,8 +45,6 @@ RUN curl -SLO "https://terraria.org/api/download/pc-dedicated-server/terraria-se
     rm -rf "${TERRARIA_VERSION}" &&\
     rm TerrariaServer.exe
 
-WORKDIR ../tModLoader
-
 RUN curl -SLO "https://github.com/tModLoader/tModLoader/releases/download/v${TMOD_VERSION}/tModLoader.zip" &&\
     unzip tModLoader.zip &&\
     chmod u+x start-tModLoaderServer.sh &&\
