@@ -34,7 +34,7 @@ RUN apt-add-repository -y 'deb https://download.mono-project.com/repo/ubuntu sta
 RUN apt install -y mono-complete 
 RUN apt install -y curl unzip
 
-WORKDIR /terraria-server/terraria
+WORKDIR /terraria-server
 
 RUN cp /usr/lib/libMonoPosixHelper.so .
 
